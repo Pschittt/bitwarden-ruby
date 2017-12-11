@@ -6,7 +6,7 @@ WORKDIR $APP_HOME
 # Needed for build but can be discarded.
 RUN apk add --no-cache --virtual .build-deps build-base gcc abuild binutils linux-headers git 
 RUN apk add --no-cache sqlite-dev 
-RUN git clone https://github.com/pschittt/bitwarden-ruby.git ${APP_HOME} 
+RUN git clone -b dockertest https://github.com/pschittt/bitwarden-ruby.git ${APP_HOME} 
 RUN bundle install 
 RUN apk del .build-deps
 
