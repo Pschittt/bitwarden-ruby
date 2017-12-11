@@ -1,8 +1,6 @@
 FROM ruby:alpine
 
-ENV APP_HOME=/opt/bitwarden-ruby
-ENV RACK_ENV=production
-ENV PORT=4567
+ENV APP_HOME=/opt/bitwarden-ruby RACK_ENV=production PORT=4567
 WORKDIR $APP_HOME
 
 # Needed for build but can be discarded.
@@ -23,5 +21,5 @@ EXPOSE ${PORT}
 VOLUME ["${APP_HOME}/db"]
 USER abc
 
-ENTRYPOINT ["env","RACK_ENV=${RACK_ENV}","bundle","exec"]
+ENTRYPOINT ["bundle","exec"]
 CMD rackup -p ${PORT} config.ru
