@@ -304,6 +304,12 @@ namespace BASE_URL do
     }.to_json
   end
 
+  options "/accounts/keys" do
+     content_type :json
+     response['access-control-allow-origin'] = '*'
+     response['allow'] = 'GET,PUT,DELETE,POST'
+  end
+
   # Used by the web vault to update the private and public keys if the user doesn't have one.
   post "/accounts/keys" do
     content_type :json
