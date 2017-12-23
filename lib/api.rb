@@ -116,6 +116,7 @@ before do
 
   # we're always going to reply with json
   content_type :json
+  response.headers['Access-Control-Allow-Origin'] = '*'
 end
 
 namespace IDENTITY_BASE_URL do
