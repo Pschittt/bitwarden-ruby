@@ -339,7 +339,6 @@ namespace BASE_URL do
   end
   
   options "/*" do
-    content_type :json
     response['access-control-allow-origin'] = '*'
     response['allow'] = 'GET,POST,PUT,DELETE'
   end
