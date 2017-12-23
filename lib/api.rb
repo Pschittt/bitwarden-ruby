@@ -339,9 +339,11 @@ namespace BASE_URL do
 	  }.to_json
   end
   
-  options "/*" do
-    response['access-control-allow-origin'] = '*'
-    response['allow'] = 'GET,POST,PUT,DELETE'
+  options "*" do
+    response.headers["Allow"] = "GET, POST, OPTIONS, PUT, DELETE"
+    response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    200
   end
 
   # Used by the web vault to connect and load the user profile/datas
