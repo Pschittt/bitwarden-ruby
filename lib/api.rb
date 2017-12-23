@@ -338,10 +338,10 @@ namespace BASE_URL do
 	  }.to_json
   end
   
-  options "/accounts/profile" do
+  options "/*" do
     content_type :json
     response['access-control-allow-origin'] = '*'
-    response['allow'] = 'GET'
+    response['allow'] = 'GET,POST,PUT,DELETE'
   end
 
   # Used by the web vault to connect and load the user profile/datas
