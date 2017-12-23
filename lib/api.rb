@@ -158,7 +158,7 @@ namespace IDENTITY_BASE_URL do
       end
 
       if !u.has_password_hash?(params[:password])
-        return validation_error("Invalid password or password")
+        return validation_error("Invalid username or password")
       end
 
       if u.two_factor_enabled? &&
@@ -304,12 +304,6 @@ namespace BASE_URL do
     }.to_json
   end
 
-  options "/accounts/keys" do
-     content_type :json
-     response['access-control-allow-origin'] = '*'
-     response['allow'] = 'GET,PUT,DELETE,POST'
-  end
-
   # Used by the web vault to update the private and public keys if the user doesn't have one.
   post "/accounts/keys" do
     content_type :json
@@ -324,7 +318,7 @@ namespace BASE_URL do
       return validation_error("Invalid key")
     end
     
-	d.user.private_key = params[:encryptedprivatekey]
+    d.user.private_key = params[:encryptedprivatekey]
     d.user.public_key = params[:publickey]
 
     {
@@ -344,7 +338,13 @@ namespace BASE_URL do
 	  }.to_json
   end
   
-  # Used by the web vaul to connect and load the user profile/datas
+  options "/accounts/profile" do
+    content_type :json
+    response['access-control-allow-origin'] = '*'
+    response['allow'] = 'GET'
+  end
+
+  # Used by the web vault to connect and load the user profile/datas
   get "/accounts/profile" do
     content_type :json
 	  response['access-control-allow-origin'] = '*'
@@ -519,7 +519,7 @@ namespace BASE_URL do
   
   get "/collections" do
 	  response['access-control-allow-origin'] = '*'
-	  {"Data":[],"Object":"list"}.to_json
+	  {"Data" => [],"Object" => "list"}.to_json
   end
 
   get "/ciphers" do
