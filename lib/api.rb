@@ -100,7 +100,7 @@ before do
     if !js.strip.blank?
       params.merge!(JSON.parse(js))
     end
-  ## needed for the web vault, which doesn't use the content-type  
+  ## needed for the web vault, which doesn't use the content-type
   elsif request.accept.to_s.match(/application\/json/) && !request.content_type.to_s.match(/application\/x-www-form-urlencoded/)
     js = request.body.read.to_s
     if !js.strip.blank?
@@ -186,15 +186,15 @@ namespace IDENTITY_BASE_URL do
         d.user_uuid = u.uuid
         d.uuid = params[:deviceidentifier]
       end
-      
+
       if params[:devicetype].present?
         d.type = params[:devicetype]
       end
-      
+
       if params[:devicename].present?
         d.name = params[:devicename]
       end
-      
+
       if params[:devicepushtoken].present?
         d.push_token = params[:devicepushtoken]
       end
@@ -217,7 +217,7 @@ namespace IDENTITY_BASE_URL do
         :token_type => "Bearer",
         :refresh_token => d.refresh_token,
         :Key => d.user.key,
-	      :PrivateKey => d.user.private_key,
+        :PrivateKey => d.user.private_key,
         # TODO: when to include :privateKey and :TwoFactorToken?
       }.to_json
     end
@@ -225,6 +225,15 @@ namespace IDENTITY_BASE_URL do
 end
 
 namespace BASE_URL do
+
+  # For HTTP CORS verification
+  options "*" do
+    response.headers["Allow"] = "GET, POST, OPTIONS, PUT, DELETE"
+    response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    200
+  end
+
   # create a new user
   post "/accounts/register" do
     content_type :json
@@ -314,107 +323,100 @@ namespace BASE_URL do
     if !d
       return validation_error("invalid bearer")
     end
-    
+
     if !params[:encryptedprivatekey].to_s.match(/^2\..+\|.+/)
       return validation_error("Invalid key")
     end
-    
+
     d.user.private_key = params[:encryptedprivatekey]
     d.user.public_key = params[:publickey]
 
     {
-	    "Id" => d.user_uuid,
-	    "Name" => d.user.name,
-	    "Email" => d.user.email,
-	    "EmailVerified" => d.user.email_verified,
-	    "Premium" => d.user.premium,
-	    "MasterPasswordHint" => d.user.password_hint,
-	    "Culture" => d.user.culture,
-	    "TwoFactorEnabled" => d.user.totp_secret,
-	    "Key" => d.user.key,
-	    "PrivateKey" => d.user.private_key,
-	    "SecurityStamp" => d.user.security_stamp,
-	    "Organizations" => "[]",
-	    "Object" => "profile",
-	  }.to_json
-  end
-  
-  options "*" do
-    response.headers["Allow"] = "GET, POST, OPTIONS, PUT, DELETE"
-    response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept"
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    200
+      "Id" => d.user_uuid,
+      "Name" => d.user.name,
+      "Email" => d.user.email,
+      "EmailVerified" => d.user.email_verified,
+      "Premium" => d.user.premium,
+      "MasterPasswordHint" => d.user.password_hint,
+      "Culture" => d.user.culture,
+      "TwoFactorEnabled" => d.user.totp_secret,
+      "Key" => d.user.key,
+      "PrivateKey" => d.user.private_key,
+      "SecurityStamp" => d.user.security_stamp,
+      "Organizations" => "[]",
+      "Object" => "profile",
+   }.to_json
   end
 
   # Used by the web vault to connect and load the user profile/datas
   get "/accounts/profile" do
     content_type :json
-	  response['access-control-allow-origin'] = '*'
+    response['access-control-allow-origin'] = '*'
     d = device_from_bearer
     if !d
       return validation_error("invalid bearer")
     end
 
     {
-	    "Id" => d.user_uuid,
-	    "Name" => d.user.name,
-	    "Email" => d.user.email,
-	    "EmailVerified" => d.user.email_verified,
-	    "Premium" => d.user.premium,
-	    "MasterPasswordHint" => d.user.password_hint,
-	    "Culture" => d.user.culture,
-	    "TwoFactorEnabled" => d.user.totp_secret,
-	    "Key" => d.user.key,
-	    "PrivateKey" => d.user.private_key,
-	    "SecurityStamp" => d.user.security_stamp,
-	    "Organizations" => "[]",
-	    "Object" => "profile",
-	  }.to_json
+     "Id" => d.user_uuid,
+     "Name" => d.user.name,
+     "Email" => d.user.email,
+     "EmailVerified" => d.user.email_verified,
+     "Premium" => d.user.premium,
+     "MasterPasswordHint" => d.user.password_hint,
+     "Culture" => d.user.culture,
+     "TwoFactorEnabled" => d.user.totp_secret,
+     "Key" => d.user.key,
+     "PrivateKey" => d.user.private_key,
+     "SecurityStamp" => d.user.security_stamp,
+     "Organizations" => "[]",
+     "Object" => "profile",
+    }.to_json
   end
 
   # Used to update masterpassword
   post "/accounts/password" do
-	  content_type :json
-	  response['access-control-allow-origin'] = '*'
+    content_type :json
+    response['access-control-allow-origin'] = '*'
     d = device_from_bearer
     if !d
       return validation_error("invalid bearer")
     end
-	
-	  need_params(:key, :masterpasswordhash, :newmasterpasswordhash) do |p|
-	    return validation_error("#{p} cannot be blank")
-	  end
 
-	  if !params[:key].to_s.match(/^0\..+\|.+/)
-	    return validation_error("Invalid key")
-	  end
-	
-	  begin
-	    Bitwarden::CipherString.parse(params[:key])
-	  rescue Bitwarden::InvalidCipherString
-	    return validation_error("Invalid key")
-	  end
+   need_params(:key, :masterpasswordhash, :newmasterpasswordhash) do |p|
+     return validation_error("#{p} cannot be blank")
+   end
 
-	  if d.user.password_hash == params[:masterpasswordhash]
+   if !params[:key].to_s.match(/^0\..+\|.+/)
+     return validation_error("Invalid key")
+   end
+
+   begin
+     Bitwarden::CipherString.parse(params[:key])
+   rescue Bitwarden::InvalidCipherString
+     return validation_error("Invalid key")
+   end
+
+   if d.user.password_hash == params[:masterpasswordhash]
       d.user.key=params[:key]
-	    d.user.password_hash=params[:newmasterpasswordhash]
-	  else
-	    return validation_error("Wrong current password")
-	  end
-	  
+     d.user.password_hash=params[:newmasterpasswordhash]
+   else
+     return validation_error("Wrong current password")
+   end
+
     User.transaction do
-	    if !d.user.save
-	      return validation_error("Unknown error")
-	    end
-	  end
-	""
+     if !d.user.save
+       return validation_error("Unknown error")
+     end
+   end
+   ""
   end
 
-  # Used to update email 
+  # Used to update email
   post "/accounts/email-token" do
-	  content_type :json
-	  response['access-control-allow-origin'] = '*'
-	  validation_error("Not implemented yet")
+   content_type :json
+   response['access-control-allow-origin'] = '*'
+   validation_error("Not implemented yet")
   end
 
   #
@@ -424,18 +426,44 @@ namespace BASE_URL do
   # Import from keepass or others via web vault
   post "/ciphers/import" do
     content_type :json
-	  response['access-control-allow-origin'] = '*'
-
-	  d = device_from_bearer
+    response['access-control-allow-origin'] = '*'
+    d = device_from_bearer
     if !d
       return validation_error("invalid bearer")
     end
-	  return validation_error("import tool not implemented yet")
+
+    #First we create all the folders
+    params[:folders].each do |p|
+      f = Folder.new
+      f.user_uuid = d.user_uuid
+      f.update_from_params(p)
+      Folder.transaction do
+        if !f.save
+          return validation_error("error saving")
+        end
+      end
+    end
+
+    # We create each CipherString
+    i = 0
+    params[:ciphers].each do |p|
+      c = Cipher.new
+      c.user_uuid = d.user_uuid
+      c.update_from_params(p)
+      c.folder_uuid = Folder.find_by_user_uuid_and_name(d.user_uuid, params[:folders][params[:folderrelationships][i]["value"].to_i]["name"]).uuid
+      Cipher.transaction do
+        if !c.save
+          return validation_error("error saving")
+        end
+      end
+      i+=1
+    end
+    ""
   end
 
   # create a new cipher
   post "/ciphers" do
-	  response['access-control-allow-origin'] = '*'
+    response['access-control-allow-origin'] = '*'
     d = device_from_bearer
     if !d
       return validation_error("invalid bearer")
@@ -508,46 +536,46 @@ namespace BASE_URL do
   # retrieve folder
   get "/folders" do
     content_type :json
-	  response['access-control-allow-origin'] = '*'
+    response['access-control-allow-origin'] = '*'
     d = device_from_bearer
     if !d
       return validation_error("invalid bearer")
     end
-	  {
-	    "Data" => d.user.folders.map{|f| f.to_hash},
-	    "Object" => "list",
-	  }.to_json
+    {
+      "Data" => d.user.folders.map{|f| f.to_hash},
+      "Object" => "list",
+    }.to_json
   end
-  
+
   get "/collections" do
-	  response['access-control-allow-origin'] = '*'
-	  {"Data" => [],"Object" => "list"}.to_json
+    response['access-control-allow-origin'] = '*'
+    {"Data" => [],"Object" => "list"}.to_json
   end
 
   get "/ciphers" do
     content_type :json
-	  response['access-control-allow-origin'] = '*'
+    response['access-control-allow-origin'] = '*'
     d = device_from_bearer
     if !d
       return validation_error("invalid bearer")
     end
-	  {
-	    "Data" => d.user.ciphers.map{|f| f.to_hash},
-	    "Object" => "list",
-	  }.to_json
+    {
+      "Data" => d.user.ciphers.map{|f| f.to_hash},
+      "Object" => "list",
+    }.to_json
   end
 
   get "/ciphers/:uuid" do
     content_type :json
-	  response['access-control-allow-origin'] = '*'
-	  c = nil
+    response['access-control-allow-origin'] = '*'
+    c = nil
 
     if !(c = Cipher.find_by_uuid(params[:uuid]))
-	    return validation_error("invalid cipher")
-	  end
-	  c.to_hash.merge({
+     return validation_error("invalid cipher")
+    end
+    c.to_hash.merge({
         "Edit" => true,
-	  }).to_json
+    }).to_json
   end
 
   # create a new folder
@@ -676,11 +704,11 @@ namespace BASE_URL do
 
   post "/organizations" do
     d= device_from_bearer
-	if !d
-	 return validation_error("invalid bearer")
-	end
+    if !d
+      return validation_error("invalid bearer")
+    end
 
-	return validation_error("Organizations not implemented yet")
+    return validation_error("Organizations not implemented yet")
   end
 end
 
