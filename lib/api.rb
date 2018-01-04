@@ -124,6 +124,15 @@ namespace IDENTITY_BASE_URL do
   #  password: login with a username/password, register/update the device
   #  refresh_token: just generate a new access_token
   # respond with an access_token and refresh_token
+  
+  # For HTTP CORS verification
+  options "*" do
+    response.headers["Allow"] = "GET, POST, OPTIONS, PUT, DELETE"
+    response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    200
+  end
+  
   post "/connect/token" do
     d = nil
 
